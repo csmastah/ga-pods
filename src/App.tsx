@@ -54,10 +54,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
           >
             {activeTab === 'dashboard' && <DashboardView onTabChange={setActiveTab} />}
             {activeTab === 'bookings'  && <BookingsTab />}
@@ -71,10 +71,14 @@ export default function App() {
       {/* FAB — opens guest booking form in new tab */}
       <button
         onClick={() => window.open('?mode=booking', '_blank')}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-white rounded-full shadow-fab flex items-center justify-center active:scale-95 transition-transform z-50"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-fab flex items-center justify-center z-50"
+        style={{ transition: 'transform 160ms cubic-bezier(0.23,1,0.32,1), box-shadow 160ms ease' }}
+        onMouseDown={e => { e.currentTarget.style.transform='scale(0.93)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(0,52,111,0.2)'; }}
+        onMouseUp={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
+        onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}
         title="New Booking"
       >
-        <Plus size={32} />
+        <Plus size={26} />
       </button>
 
       {/* Bottom Nav */}
@@ -113,7 +117,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
         <p className="text-sm font-label uppercase tracking-[0.2em] text-outline mb-1">Overview</p>
         <div className="flex items-center justify-between">
           <h2 className="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Dashboard</h2>
-          <button onClick={load} disabled={loading} className="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors active:scale-95">
+          <button onClick={load} disabled={loading} className="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors" style={{ transition: 'transform 120ms cubic-bezier(0.23,1,0.32,1), background-color 150ms ease' }} onMouseDown={e => (e.currentTarget.style.transform='scale(0.93)')} onMouseUp={e => (e.currentTarget.style.transform='')} onMouseLeave={e => (e.currentTarget.style.transform='')}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -135,12 +139,12 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
         </div>
 
         {loading ? (
-          <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-surface-container-low animate-pulse" />)}</div>
+          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-surface-container-low animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />)}</div>
         ) : recent.length === 0 ? (
           <p className="text-outline text-sm text-center py-8 italic">No bookings yet</p>
         ) : (
-          <div className="space-y-4">
-            {recent.map(b => {
+          <div className="space-y-3">
+            {recent.map((b, idx) => {
               const statusColors: Record<string, string> = {
                 pending_payment: 'bg-amber-500 text-white',
                 confirmed:       'bg-blue-500 text-white',
@@ -149,8 +153,14 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
                 cancelled:       'bg-red-500 text-white',
               };
               return (
-                <div key={b.id} className="bg-surface-container-low rounded-2xl p-5 flex items-center gap-4 border border-transparent hover:bg-surface-container-high hover:border-outline-variant/30 transition-all">
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center shadow-fab shrink-0 font-extrabold text-sm font-headline">
+                <motion.div
+                  key={b.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: idx * 0.06, ease: [0.23, 1, 0.32, 1] }}
+                  className="bg-surface-container-low rounded-2xl p-5 flex items-center gap-4 border border-transparent hover:bg-surface-container-high hover:border-outline-variant/30 transition-colors duration-150"
+                >
+                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0 font-extrabold text-sm font-headline">
                     {b.room?.room_number ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -165,7 +175,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
                     </p>
                   </div>
                   <ChevronRight className="text-outline shrink-0" size={20} />
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -185,7 +195,11 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
             <button
               key={item.tab}
               onClick={() => onTabChange(item.tab)}
-              className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-4 flex items-center gap-3 hover:bg-surface-container-high active:scale-95 transition-all shadow-sm"
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-4 flex items-center gap-3 hover:bg-surface-container-high transition-colors duration-150"
+              style={{ transition: 'transform 140ms cubic-bezier(0.23,1,0.32,1), background-color 150ms ease' }}
+              onMouseDown={e => (e.currentTarget.style.transform='scale(0.97)')}
+              onMouseUp={e => (e.currentTarget.style.transform='')}
+              onMouseLeave={e => (e.currentTarget.style.transform='')}
             >
               <div className="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center">{item.icon}</div>
               <span className="font-semibold text-sm text-on-surface flex-1 text-left">{item.label}</span>
@@ -220,8 +234,9 @@ function NavButton({ active, onClick, icon, label }: {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center py-2 px-4 transition-all duration-300 rounded-2xl ${
-        active ? 'bg-gradient-to-br from-primary to-primary-container text-white scale-100' : 'text-outline hover:text-primary scale-90'
+      style={{ transition: 'background-color 180ms cubic-bezier(0.23,1,0.32,1), color 180ms ease, transform 180ms cubic-bezier(0.23,1,0.32,1)' }}
+      className={`flex flex-col items-center justify-center py-2 px-4 rounded-2xl ${
+        active ? 'bg-primary text-white scale-100' : 'text-outline hover:text-primary scale-90'
       }`}
     >
       <div className="mb-1">{icon}</div>

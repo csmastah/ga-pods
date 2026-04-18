@@ -241,10 +241,10 @@ export default function BookingPage() {
           {step === 1 && (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
               <div className="mb-7">
                 <p className="text-[11px] font-label uppercase tracking-[0.2em] text-outline mb-1.5">
@@ -361,7 +361,11 @@ export default function BookingPage() {
                 <button
                   onClick={handleCheckAvailability}
                   disabled={loading || !search.checkIn || !search.checkOut}
-                  className="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                  style={{ transition: 'transform 160ms cubic-bezier(0.23,1,0.32,1), opacity 160ms ease' }}
+                  onMouseDown={e => { if (!e.currentTarget.disabled) e.currentTarget.style.transform='scale(0.97)'; }}
+                  onMouseUp={e => (e.currentTarget.style.transform='')}
+                  onMouseLeave={e => (e.currentTarget.style.transform='')}
                 >
                   {loading ? (
                     <span className="animate-pulse">Checking availability…</span>
@@ -379,10 +383,10 @@ export default function BookingPage() {
           {step === 2 && (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
               <div className="mb-6">
                 <h2 className="text-[2rem] font-extrabold font-headline text-on-surface leading-tight">
@@ -411,13 +415,20 @@ export default function BookingPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {rooms.map((room) => (
-                    <RoomCard
+                  {rooms.map((room, idx) => (
+                    <motion.div
                       key={room.id}
-                      room={room}
-                      onSelect={handleSelectRoom}
-                    />
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.22, delay: idx * 0.07, ease: [0.23, 1, 0.32, 1] }}
+                    >
+                      <RoomCard
+                        room={room}
+                        onSelect={handleSelectRoom}
+                      />
+                    </motion.div>
                   ))}
+
                 </div>
               )}
             </motion.div>
@@ -429,10 +440,10 @@ export default function BookingPage() {
           {step === 3 && selectedRoom && (
             <motion.div
               key="step3"
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
               <div className="mb-6">
                 <h2 className="text-[2rem] font-extrabold font-headline text-on-surface leading-tight">
@@ -506,7 +517,11 @@ export default function BookingPage() {
                 <button
                   onClick={handleConfirmBooking}
                   disabled={loading || !guest.name.trim() || !guest.phone.trim()}
-                  className="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                  style={{ transition: 'transform 160ms cubic-bezier(0.23,1,0.32,1), opacity 160ms ease' }}
+                  onMouseDown={e => { if (!e.currentTarget.disabled) e.currentTarget.style.transform='scale(0.97)'; }}
+                  onMouseUp={e => (e.currentTarget.style.transform='')}
+                  onMouseLeave={e => (e.currentTarget.style.transform='')}
                 >
                   {loading ? (
                     <span className="animate-pulse">Confirming…</span>
@@ -528,9 +543,9 @@ export default function BookingPage() {
           {step === 4 && result && (
             <motion.div
               key="step4"
-              initial={{ opacity: 0, scale: 0.97 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
             >
               {/* Success badge */}
               <div className="text-center mb-7">
@@ -623,7 +638,11 @@ export default function BookingPage() {
                 href={settings.messenger_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2.5 w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide active:scale-95 transition-transform"
+                className="flex items-center justify-center gap-2.5 w-full py-4 bg-primary text-white rounded-2xl font-headline font-bold text-base tracking-wide"
+                style={{ transition: 'transform 160ms cubic-bezier(0.23,1,0.32,1)' }}
+                onMouseDown={e => (e.currentTarget.style.transform='scale(0.97)')}
+                onMouseUp={e => (e.currentTarget.style.transform='')}
+                onMouseLeave={e => (e.currentTarget.style.transform='')}
               >
                 <MessageCircle size={20} />
                 Message Us on Messenger
