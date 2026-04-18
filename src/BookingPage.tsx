@@ -83,7 +83,7 @@ function formatTime(time24: string) {
 export default function BookingPage() {
   const [step, setStep] = useState<Step>(1);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [search, setSearch] = useState<BookingSearchForm>({ checkIn: '', checkOut: '', guests: 2 });
+  const [search, setSearch] = useState<BookingSearchForm>({ checkIn: '', checkOut: '', adults: 2, children: 0 });
   const [rooms, setRooms] = useState<RoomType[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
   const [guest, setGuest] = useState<GuestForm>({ name: '', phone: '', email: '', notes: '' });
@@ -110,7 +110,7 @@ export default function BookingPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const g = params.get('guests');
-    if (g) setSearch((p) => ({ ...p, guests: Math.min(6, Math.max(1, parseInt(g) || 2)) }));
+    if (g) setSearch((p) => ({ ...p, adults: Math.min(30, Math.max(1, parseInt(g) || 2)) }));
   }, []);
 
   // ── Date helpers ─────────────────────────────────────────────
@@ -131,7 +131,7 @@ export default function BookingPage() {
       const { data, error: rpcErr } = await supabase.rpc('get_available_room_types', {
         p_check_in: search.checkIn,
         p_check_out: search.checkOut,
-        p_guests: search.guests,
+        p_guests: search.adults + search.children,
       });
       if (rpcErr) throw rpcErr;
       setRooms(data ?? []);
@@ -166,7 +166,7 @@ export default function BookingPage() {
         p_guest_name:   guest.name.trim(),
         p_guest_phone:  guest.phone.trim(),
         p_guest_email:  guest.email.trim() || null,
-        p_num_guests:   search.guests,
+        p_num_guests:   search.adults + search.children,
         p_check_in:     search.checkIn,
         p_check_out:    search.checkOut,
         p_source:       source,
@@ -262,24 +262,51 @@ export default function BookingPage() {
                   <label className="flex items-center gap-1.5 text-[10px] font-label uppercase tracking-widest text-outline mb-4">
                     <Users size={11} /> Number of Guests
                   </label>
-                  <div className="flex items-center gap-5">
-                    <button
-                      onClick={() => setSearch((p) => ({ ...p, guests: Math.max(1, p.guests - 1) }))}
-                      className="w-11 h-11 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
-                    >
-                      −
-                    </button>
-                    <span className="text-5xl font-extrabold font-headline text-on-surface w-14 text-center tabular-nums">
-                      {search.guests}
-                    </span>
-                    <button
-                      onClick={() => setSearch((p) => ({ ...p, guests: Math.min(6, p.guests + 1) }))}
-                      className="w-11 h-11 rounded-full bg-primary text-white font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
-                    >
-                      +
-                    </button>
+
+                  {/* Adults */}
+                  <div className="mb-4">
+                    <p className="text-sm font-semibold text-on-surface mb-1">Adults</p>
+                    <p className="text-[10px] text-outline font-label mb-3">12 years old and above · Max 30</p>
+                    <div className="flex items-center gap-5">
+                      <button
+                        onClick={() => setSearch((p) => ({ ...p, adults: Math.max(1, p.adults - 1) }))}
+                        className="w-11 h-11 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
+                      >
+                        −
+                      </button>
+                      <span className="text-5xl font-extrabold font-headline text-on-surface w-14 text-center tabular-nums">
+                        {search.adults}
+                      </span>
+                      <button
+                        onClick={() => setSearch((p) => ({ ...p, adults: Math.min(30, p.adults + 1) }))}
+                        className="w-11 h-11 rounded-full bg-primary text-white font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-xs text-outline mt-3 font-label">Max 6 guests per room</p>
+
+                  <div className="border-t border-outline-variant/20 pt-4">
+                    <p className="text-sm font-semibold text-on-surface mb-1">Children</p>
+                    <p className="text-[10px] text-outline font-label mb-3">11 years old and below · Max 4</p>
+                    <div className="flex items-center gap-5">
+                      <button
+                        onClick={() => setSearch((p) => ({ ...p, children: Math.max(0, p.children - 1) }))}
+                        className="w-11 h-11 rounded-full bg-surface-container-high text-on-surface font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
+                      >
+                        −
+                      </button>
+                      <span className="text-5xl font-extrabold font-headline text-on-surface w-14 text-center tabular-nums">
+                        {search.children}
+                      </span>
+                      <button
+                        onClick={() => setSearch((p) => ({ ...p, children: Math.min(4, p.children + 1) }))}
+                        className="w-11 h-11 rounded-full bg-primary text-white font-bold text-xl flex items-center justify-center active:scale-95 transition-transform"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Check-in */}
@@ -363,7 +390,8 @@ export default function BookingPage() {
                 </h2>
                 <p className="text-sm text-outline mt-1.5">
                   {formatDate(search.checkIn)} → {formatDate(search.checkOut)}&nbsp;·&nbsp;
-                  {search.guests} guest{search.guests > 1 ? 's' : ''}
+                  {search.adults} adult{search.adults !== 1 ? 's' : ''}
+                  {search.children > 0 ? `, ${search.children} child${search.children !== 1 ? 'ren' : ''}` : ''}
                 </p>
               </div>
 
@@ -545,7 +573,7 @@ export default function BookingPage() {
                 <SummaryRow label="Room"       value={result.room_type_name} />
                 <SummaryRow label="Check-in"   value={`${formatDate(result.check_in)} · ${formatTime(settings.checkin_time)}`} />
                 <SummaryRow label="Check-out"  value={`${formatDate(result.check_out)} · ${formatTime(settings.checkout_time)}`} />
-                <SummaryRow label="Guests"     value={`${search.guests} pax`} />
+                <SummaryRow label="Guests" value={`${search.adults} adult${search.adults !== 1 ? 's' : ''}${search.children > 0 ? `, ${search.children} child${search.children !== 1 ? 'ren' : ''}` : ''}`} />
                 <SummaryRow label="Nights"     value={`${result.num_nights} night${result.num_nights > 1 ? 's' : ''}`} />
                 <SummaryRow label="Rate"       value={`${formatPrice(result.price_per_night)}/night`} />
                 <div className="border-t border-outline-variant/20 pt-3 mt-1">

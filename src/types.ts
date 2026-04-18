@@ -92,7 +92,8 @@ export interface AppSettings {
 export interface BookingSearchForm {
   checkIn: string;
   checkOut: string;
-  guests: number;
+  adults: number;
+  children: number;
 }
 
 /** Form state for guest details (Step 3) */
