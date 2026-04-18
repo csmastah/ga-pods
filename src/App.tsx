@@ -11,10 +11,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import BookingsTab from './components/BookingsTab';
-import RoomsTab    from './components/RoomsTab';
-import PaymentsTab from './components/PaymentsTab';
-import CalendarTab from './components/CalendarTab';
+import BookingsTab  from './components/BookingsTab';
+import RoomsTab     from './components/RoomsTab';
+import PaymentsTab  from './components/PaymentsTab';
+import CalendarTab  from './components/CalendarTab';
+import BookingPage  from './BookingPage';
 
 import { getDashboardSummary, getBookings } from './lib/api';
 import type { Booking } from './lib/types';
@@ -23,6 +24,10 @@ type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+
+  // Show guest booking flow when ?mode=booking is in the URL
+  const isBookingMode = new URLSearchParams(window.location.search).get('mode') === 'booking';
+  if (isBookingMode) return <BookingPage />;
 
   return (
     <div className="min-h-screen bg-surface flex flex-col font-body">
@@ -63,11 +68,11 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* FAB */}
+      {/* FAB — opens guest booking form in new tab */}
       <button
-        onClick={() => setActiveTab('bookings')}
+        onClick={() => window.open('?mode=booking', '_blank')}
         className="fixed bottom-28 right-6 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-white rounded-full shadow-fab flex items-center justify-center active:scale-95 transition-transform z-50"
-        title="Go to Bookings"
+        title="New Booking"
       >
         <Plus size={32} />
       </button>
