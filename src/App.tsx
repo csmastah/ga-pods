@@ -8,6 +8,7 @@ import {
   Bell, LogIn, LogOut, Moon, DoorOpen,
   Banknote, Plus, LayoutDashboard, BookText,
   CalendarDays, Bed, ChevronRight, RefreshCw,
+  MapPin, MessageCircle, ShieldCheck, CreditCard,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -32,7 +33,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-surface flex flex-col font-body">
       {/* Top App Bar */}
-      <header className="bg-surface sticky top-0 z-40 px-6 py-4 flex justify-between items-center w-full">
+      <header className="bg-surface/95 backdrop-blur-xl sticky top-0 z-40 px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center w-full">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container">
             <img
@@ -42,7 +43,12 @@ export default function App() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <h1 className="text-xl font-bold text-primary font-headline tracking-tight">G&A Pods</h1>
+          <div>
+            <h1 className="text-xl font-bold text-primary font-headline tracking-tight leading-none">G&A Pods</h1>
+            <p className="text-[11px] text-outline font-label mt-1 flex items-center gap-1">
+              <MapPin size={10} /> Pinamalayan, Oriental Mindoro
+            </p>
+          </div>
         </div>
         <button className="p-2 text-outline hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-150">
           <Bell size={24} />
@@ -113,28 +119,53 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
 
   return (
     <div>
-      <section className="mb-10">
-        <p className="text-sm font-label uppercase tracking-[0.2em] text-outline mb-1">Overview</p>
-        <div className="flex items-center justify-between">
-          <h2 className="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Dashboard</h2>
-          <button onClick={load} disabled={loading} className="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors" style={{ transition: 'transform 120ms cubic-bezier(0.23,1,0.32,1), background-color 150ms ease' }} onMouseDown={e => (e.currentTarget.style.transform='scale(0.93)')} onMouseUp={e => (e.currentTarget.style.transform='')} onMouseLeave={e => (e.currentTarget.style.transform='')}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
+      <section className="mb-6 overflow-hidden rounded-2xl bg-primary text-white shadow-card">
+        <div className="min-h-56 bg-[linear-gradient(140deg,rgba(0,52,111,0.92),rgba(0,62,47,0.78)),url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center p-5 md:p-7 flex flex-col justify-between">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-label uppercase tracking-[0.22em] text-white/75 mb-2">
+                Manager Overview
+              </p>
+              <h2 className="text-[2.25rem] md:text-5xl font-extrabold font-headline leading-tight max-w-xl">
+                Keep today&apos;s stays moving smoothly.
+              </h2>
+            </div>
+            <button
+              onClick={load}
+              disabled={loading}
+              className="p-3 rounded-full bg-white/12 border border-white/15 text-white hover:bg-white/18 transition-colors shrink-0"
+              style={{ transition: 'transform 120ms cubic-bezier(0.23,1,0.32,1), background-color 150ms ease' }}
+              onMouseDown={e => (e.currentTarget.style.transform='scale(0.93)')}
+              onMouseUp={e => (e.currentTarget.style.transform='')}
+              onMouseLeave={e => (e.currentTarget.style.transform='')}
+              aria-label="Refresh dashboard"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-8">
+            <HeroPill icon={<ShieldCheck size={12} />} label="Live room status" />
+            <HeroPill icon={<CreditCard size={12} />} label="GCash follow-up" />
+            <HeroPill icon={<MessageCircle size={12} />} label="Messenger booking flow" />
+          </div>
         </div>
       </section>
 
       {/* Live Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-        <SummaryCard icon={<LogIn className="text-primary" />}    label="Today's Check-ins"  value={loading ? '—' : String(summary.todayCheckIns)}  className="bg-surface-container-lowest border border-outline-variant/15" />
-        <SummaryCard icon={<LogOut className="text-secondary" />} label="Today's Check-outs" value={loading ? '—' : String(summary.todayCheckOuts)} className="bg-surface-container-low" />
-        <SummaryCard icon={<Moon className="text-primary" />}     label="Active Stays"       value={loading ? '—' : String(summary.activeStays)}    className="bg-primary-container/10"  valueClassName="text-primary"  labelClassName="text-on-primary-fixed-variant" />
-        <SummaryCard icon={<DoorOpen className="text-tertiary" />} label="Available Rooms"   value={loading ? '—' : String(summary.availableRooms)} className="bg-tertiary-fixed/30"     valueClassName="text-tertiary" labelClassName="text-on-tertiary-fixed-variant" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-10">
+        <SummaryCard icon={<LogIn className="text-primary" />} label="Today's Check-ins" value={loading ? '—' : String(summary.todayCheckIns)} helper="Arrivals to prepare" className="bg-surface-container-lowest border border-outline-variant/15" />
+        <SummaryCard icon={<LogOut className="text-secondary" />} label="Today's Check-outs" value={loading ? '—' : String(summary.todayCheckOuts)} helper="Rooms turning over" className="bg-surface-container-lowest border border-outline-variant/15" />
+        <SummaryCard icon={<Moon className="text-primary" />} label="Active Stays" value={loading ? '—' : String(summary.activeStays)} helper="Guests in-house" className="bg-primary-container/10 border border-primary/10" valueClassName="text-primary" labelClassName="text-on-primary-fixed-variant" />
+        <SummaryCard icon={<DoorOpen className="text-tertiary" />} label="Available Rooms" value={loading ? '—' : String(summary.availableRooms)} helper="Ready to sell" className="bg-tertiary-fixed/30 border border-tertiary/10" valueClassName="text-tertiary" labelClassName="text-on-tertiary-fixed-variant" />
       </div>
 
       {/* Recent Activity */}
       <section className="mb-10">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold font-headline tracking-tight">Recent Activity</h3>
+          <div>
+            <p className="text-[11px] font-label uppercase tracking-[0.2em] text-outline mb-1">Bookings</p>
+            <h3 className="text-2xl font-bold font-headline tracking-tight">Recent Activity</h3>
+          </div>
           <button onClick={() => onTabChange('bookings')} className="text-primary text-sm font-semibold hover:underline">View All</button>
         </div>
 
@@ -158,9 +189,9 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.22, delay: idx * 0.06, ease: [0.23, 1, 0.32, 1] }}
-                  className="bg-surface-container-low rounded-2xl p-5 flex items-center gap-4 border border-transparent hover:bg-surface-container-high hover:border-outline-variant/30 transition-colors duration-150"
+                  className="bg-surface-container-lowest rounded-2xl p-5 flex items-center gap-4 border border-outline-variant/15 shadow-card hover:bg-surface-container-low hover:border-primary/20 transition-colors duration-150"
                 >
-                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0 font-extrabold text-sm font-headline">
+                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shrink-0 font-extrabold text-sm font-headline">
                     {b.room?.room_number ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -184,6 +215,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
 
       {/* Quick Access */}
       <section>
+        <p className="text-[11px] font-label uppercase tracking-[0.2em] text-outline mb-1">Shortcuts</p>
         <h3 className="text-2xl font-bold font-headline tracking-tight mb-4">Quick Access</h3>
         <div className="grid grid-cols-2 gap-3">
           {([
@@ -195,7 +227,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
             <button
               key={item.tab}
               onClick={() => onTabChange(item.tab)}
-              className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-4 flex items-center gap-3 hover:bg-surface-container-high transition-colors duration-150"
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-4 flex items-center gap-3 shadow-card hover:bg-surface-container-low hover:border-primary/20 transition-colors duration-150"
               style={{ transition: 'transform 140ms cubic-bezier(0.23,1,0.32,1), background-color 150ms ease' }}
               onMouseDown={e => (e.currentTarget.style.transform='scale(0.97)')}
               onMouseUp={e => (e.currentTarget.style.transform='')}
@@ -213,18 +245,28 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
 }
 
 // ── Shared Components ─────────────────────────────────────────────────────────
-function SummaryCard({ icon, label, value, className = '', valueClassName = 'text-on-surface', labelClassName = 'text-outline' }: {
+function SummaryCard({ icon, label, value, helper, className = '', valueClassName = 'text-on-surface', labelClassName = 'text-outline' }: {
   icon: ReactNode; label: string; value: string;
-  className?: string; valueClassName?: string; labelClassName?: string;
+  helper?: string; className?: string; valueClassName?: string; labelClassName?: string;
 }) {
   return (
-    <div className={`p-6 rounded-[2rem] flex flex-col justify-between aspect-square md:aspect-auto md:h-48 group hover:scale-[1.02] transition-all duration-300 ${className}`}>
-      <div className="p-2 w-fit rounded-full">{icon}</div>
+    <div className={`p-5 rounded-2xl min-h-40 flex flex-col justify-between group hover:scale-[1.01] transition-all duration-300 shadow-card ${className}`}>
+      <div className="p-2 w-fit rounded-full bg-white/45">{icon}</div>
       <div>
         <p className={`text-[10px] font-label uppercase tracking-widest mb-1 ${labelClassName}`}>{label}</p>
-        <p className={`text-5xl font-extrabold font-headline ${valueClassName}`}>{value}</p>
+        <p className={`text-4xl font-extrabold font-headline ${valueClassName}`}>{value}</p>
+        {helper && <p className="text-xs text-outline mt-1">{helper}</p>}
       </div>
     </div>
+  );
+}
+
+function HeroPill({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <span className="text-[11px] bg-white/14 border border-white/15 px-2.5 py-1 rounded-full font-label text-white flex items-center gap-1.5">
+      {icon}
+      {label}
+    </span>
   );
 }
 
