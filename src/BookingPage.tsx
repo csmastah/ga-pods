@@ -89,6 +89,10 @@ const stayHighlights = [
   'GCash payment after booking',
 ];
 
+function normalizeBrandText(value: string) {
+  return value.replaceAll('G&A Pods', 'G and A Pods').replaceAll('G&A', 'G and A');
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BookingPage() {
@@ -111,7 +115,9 @@ export default function BookingPage() {
       .then(({ data }) => {
         if (data) {
           const map: AppSettings = { ...DEFAULT_SETTINGS };
-          data.forEach((row) => { map[row.key] = row.value; });
+          data.forEach((row) => {
+            map[row.key] = typeof row.value === 'string' ? normalizeBrandText(row.value) : row.value;
+          });
           setSettings(map);
         }
       });
