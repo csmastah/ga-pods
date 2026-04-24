@@ -1,5 +1,5 @@
 /**
- * G&A Pods — Guest Booking Page
+ * G and A Pods — Guest Booking Page
  *
  * 4-step booking flow:
  *   Step 1 → Select dates & guest count
@@ -50,10 +50,10 @@ type Step = 1 | 2 | 3 | 4;
 const DEFAULT_SETTINGS: AppSettings = {
   checkin_time: '14:00',
   checkout_time: '11:00',
-  business_name: 'G&A Pods',
+  business_name: 'G and A Pods',
   business_location: 'Pinamalayan, Oriental Mindoro',
   gcash_number: '—',
-  gcash_name: 'G&A Pods',
+  gcash_name: 'G and A Pods',
   messenger_link: 'https://m.me/',
   confirmation_hours: '1–2',
   pending_expiry_minutes: '30',
@@ -232,7 +232,7 @@ export default function BookingPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
-              aria-label="Message G&A Pods on Messenger"
+              aria-label="Message G and A Pods on Messenger"
             >
               <MessageCircle size={18} />
             </a>
@@ -459,7 +459,7 @@ export default function BookingPage() {
                   <div>
                     <p className="text-sm font-bold text-on-surface">Choose the room that fits your group.</p>
                     <p className="text-xs text-outline mt-1 leading-relaxed">
-                      Rates show the full stay total. Your booking is held while G&A Pods verifies payment.
+                      Rates show the full stay total. Your booking is held while G and A Pods verifies payment.
                     </p>
                   </div>
                 </div>
@@ -597,7 +597,7 @@ export default function BookingPage() {
                 </button>
 
                 <p className="text-center text-xs text-outline px-2">
-                  No payment is taken now. Your room is held after submission, then confirmed once G&A Pods receives your GCash screenshot.
+                  No payment is taken now. Your room is held after submission, then confirmed once G and A Pods receives your GCash screenshot.
                 </p>
               </div>
             </motion.div>

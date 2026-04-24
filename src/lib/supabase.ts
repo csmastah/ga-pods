@@ -1,5 +1,5 @@
 /**
- * Supabase client for G&A Pods Booking System
+ * Supabase client for G and A Pods Booking System
  *
  * Required environment variables in your .env file:
  *   VITE_SUPABASE_URL=https://your-project-id.supabase.co

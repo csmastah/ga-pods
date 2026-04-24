@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────
-//  G&A Pods — TypeScript types (real Supabase schema)
+//  G and A Pods — TypeScript types (real Supabase schema)
 // ─────────────────────────────────────────────
 
 export type BookingStatus =

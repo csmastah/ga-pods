@@ -1,5 +1,5 @@
 // ============================================================
-// G&A Pods Booking System — TypeScript Types
+// G and A Pods Booking System — TypeScript Types
 // ============================================================
 
 /** A room category (Fan, AC Quad, etc.) returned by get_available_room_types() */

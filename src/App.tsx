@@ -1,5 +1,5 @@
 /**
- * G&A Pods — Manager Dashboard
+ * G and A Pods — Manager Dashboard
  * Stack: Vite + React + TypeScript + Tailwind v4 + Motion + Supabase
  */
 
@@ -44,7 +44,7 @@ export default function App() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-primary font-headline tracking-tight leading-none">G&A Pods</h1>
+            <h1 className="text-xl font-bold text-primary font-headline tracking-tight leading-none">G and A Pods</h1>
             <p className="text-[11px] text-outline font-label mt-1 flex items-center gap-1">
               <MapPin size={10} /> Pinamalayan, Oriental Mindoro
             </p>
