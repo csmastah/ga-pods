@@ -50,7 +50,11 @@ export default function App() {
             </p>
           </div>
         </div>
-        <button className="p-2 text-outline hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-150">
+        <button
+          onClick={() => setActiveTab('bookings')}
+          className="p-2 text-outline hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-150"
+          aria-label="Open bookings"
+        >
           <Bell size={24} />
         </button>
       </header>
