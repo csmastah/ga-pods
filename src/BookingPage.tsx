@@ -12,7 +12,7 @@
  * dynamically from the Supabase settings table — no code changes needed.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -28,6 +28,11 @@ import {
   Clock,
   Copy,
   CheckCheck,
+  MapPin,
+  ShieldCheck,
+  CreditCard,
+  BedDouble,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from './lib/supabase';
@@ -77,6 +82,12 @@ function formatTime(time24: string) {
   const h12 = h % 12 || 12;
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
+
+const stayHighlights = [
+  'Private pod-style rooms',
+  'Wi-Fi and essentials',
+  'GCash payment after booking',
+];
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -211,8 +222,21 @@ export default function BookingPage() {
             <h1 className="text-base font-bold font-headline text-primary leading-none">
               {settings.business_name}
             </h1>
-            <p className="text-[11px] text-outline font-label mt-0.5">{settings.business_location}</p>
+            <p className="text-[11px] text-outline font-label mt-0.5 flex items-center gap-1">
+              <MapPin size={10} /> {settings.business_location}
+            </p>
           </div>
+          {step === 1 && (
+            <a
+              href={settings.messenger_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+              aria-label="Message G&A Pods on Messenger"
+            >
+              <MessageCircle size={18} />
+            </a>
+          )}
           {step < 4 && (
             <span className="text-xs text-outline font-label">
               Step {step} of 3
@@ -246,13 +270,43 @@ export default function BookingPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
-              <div className="mb-7">
-                <p className="text-[11px] font-label uppercase tracking-[0.2em] text-outline mb-1.5">
-                  Book Your Stay
-                </p>
-                <h2 className="text-[2rem] font-extrabold font-headline text-on-surface leading-tight">
-                  When are you staying?
-                </h2>
+              <div className="mb-5 overflow-hidden rounded-2xl bg-primary text-white shadow-card">
+                <div className="min-h-48 bg-[linear-gradient(140deg,rgba(0,52,111,0.92),rgba(0,62,47,0.78)),url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center p-5 flex flex-col justify-end">
+                  <p className="text-[11px] font-label uppercase tracking-[0.22em] text-white/75 mb-2">
+                    Pinamalayan Stay
+                  </p>
+                  <h2 className="text-[2rem] font-extrabold font-headline leading-tight">
+                    Book a simple, private stay at {settings.business_name}.
+                  </h2>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {stayHighlights.map((item) => (
+                      <span
+                        key={item}
+                        className="text-[11px] bg-white/14 border border-white/15 px-2.5 py-1 rounded-full font-label text-white"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mb-5">
+                <StayFact icon={<Clock size={14} />} label="Check-in" value={formatTime(settings.checkin_time)} />
+                <StayFact icon={<Clock size={14} />} label="Check-out" value={formatTime(settings.checkout_time)} />
+                <StayFact icon={<CreditCard size={14} />} label="Pay Later" value="GCash" />
+              </div>
+
+              <div className="bg-tertiary-fixed/25 border border-tertiary/10 rounded-2xl p-4 mb-6">
+                <div className="flex gap-3">
+                  <ShieldCheck size={18} className="text-tertiary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-on-surface">No payment is taken on this form.</p>
+                    <p className="text-xs text-outline mt-1 leading-relaxed">
+                      Submit your details first, then pay by GCash and send the screenshot on Messenger to confirm.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -399,6 +453,18 @@ export default function BookingPage() {
                 </p>
               </div>
 
+              <div className="bg-surface-container-low rounded-2xl p-4 mb-4 border border-outline-variant/15">
+                <div className="flex gap-3">
+                  <BedDouble size={18} className="text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-on-surface">Choose the room that fits your group.</p>
+                    <p className="text-xs text-outline mt-1 leading-relaxed">
+                      Rates show the full stay total. Your booking is held while G&A Pods verifies payment.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {rooms.length === 0 ? (
                 <div className="text-center py-16">
                   <p className="text-4xl mb-3">😔</p>
@@ -531,7 +597,7 @@ export default function BookingPage() {
                 </button>
 
                 <p className="text-center text-xs text-outline px-2">
-                  No payment taken now. You'll receive GCash instructions on the next screen.
+                  No payment is taken now. Your room is held after submission, then confirmed once G&A Pods receives your GCash screenshot.
                 </p>
               </div>
             </motion.div>
@@ -556,7 +622,7 @@ export default function BookingPage() {
                   Booking Received!
                 </h2>
                 <p className="text-outline text-sm mt-1.5">
-                  Your room is reserved. Complete payment below to confirm.
+                  Your room is held for payment. Send your GCash screenshot on Messenger to confirm.
                 </p>
               </div>
 
@@ -667,7 +733,16 @@ export default function BookingPage() {
 function RoomCard({ room, onSelect }: { room: RoomType; onSelect: (r: RoomType) => void }) {
   const hasAC = room.amenities?.some((a) => a.toLowerCase().includes('air'));
   return (
-    <div className="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/20 hover:border-primary/30 transition-all">
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 hover:border-primary/30 transition-all overflow-hidden shadow-card">
+      <div className="h-28 bg-[linear-gradient(135deg,rgba(0,52,111,0.78),rgba(0,62,47,0.62)),url('https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=900&q=80')] bg-cover bg-center p-4 flex items-end justify-between">
+        <span className="text-[10px] bg-white/90 text-primary px-2.5 py-1 rounded-full font-label uppercase tracking-wide flex items-center gap-1">
+          <Sparkles size={10} /> Private Stay
+        </span>
+        <span className="text-[10px] bg-white/90 text-on-surface px-2.5 py-1 rounded-full font-label uppercase tracking-wide">
+          Up to {room.max_guests} guests
+        </span>
+      </div>
+      <div className="p-5">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-headline font-bold text-on-surface text-lg leading-tight pr-2">
           {room.name}
@@ -709,7 +784,7 @@ function RoomCard({ room, onSelect }: { room: RoomType; onSelect: (r: RoomType) 
             Total: <span className="font-bold text-on-surface">{formatPrice(room.total_price)}</span>
             {' '}for {room.num_nights} night{room.num_nights > 1 ? 's' : ''}
           </p>
-          <p className="text-xs text-outline">Up to {room.max_guests} guests</p>
+          <p className="text-xs text-outline">Payment instructions after booking</p>
         </div>
         <button
           onClick={() => onSelect(room)}
@@ -717,6 +792,27 @@ function RoomCard({ room, onSelect }: { room: RoomType; onSelect: (r: RoomType) 
         >
           Select
         </button>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+function StayFact({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/15 p-3 min-h-24 flex flex-col justify-between">
+      <div className="text-primary">{icon}</div>
+      <div>
+        <p className="text-[10px] text-outline font-label uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-bold text-on-surface leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -737,7 +833,7 @@ function InputField({
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }) {
   return (
     <div className="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/20">
