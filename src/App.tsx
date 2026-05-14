@@ -171,9 +171,9 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* FAB — opens guest booking form in new tab */}
+      {/* FAB — opens guest booking flow */}
       <button
-        onClick={() => window.open('?mode=booking', '_blank')}
+        onClick={() => window.open('https://gandapods.com/booking', '_blank')}
         className="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-fab flex items-center justify-center z-50"
         style={{ transition: 'transform 160ms cubic-bezier(0.23,1,0.32,1), box-shadow 160ms ease' }}
         onMouseDown={e => { e.currentTarget.style.transform='scale(0.93)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(217,93,57,0.2)'; }}
@@ -292,7 +292,8 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.22, delay: idx * 0.06, ease: [0.23, 1, 0.32, 1] }}
-                  className="bg-surface-container-lowest rounded-2xl p-5 flex items-center gap-4 border border-outline-variant/35 shadow-card hover:bg-surface-container-low hover:border-primary/25 transition-colors duration-150"
+                  onClick={() => onTabChange('bookings')}
+                  className="bg-surface-container-lowest rounded-2xl p-5 flex items-center gap-4 border border-outline-variant/35 shadow-card hover:bg-surface-container-low hover:border-primary/25 transition-colors duration-150 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shrink-0 font-extrabold text-sm font-headline">
                     {b.room?.room_number ?? '?'}
