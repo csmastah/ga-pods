@@ -8,7 +8,7 @@ import {
   Bell, LogIn, LogOut, Moon, DoorOpen,
   Banknote, Plus, LayoutDashboard, BookText,
   CalendarDays, Bed, ChevronRight, RefreshCw,
-  MapPin, MessageCircle, ShieldCheck, CreditCard,
+  MapPin, MessageCircle, ShieldCheck, CreditCard, BarChart2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -16,13 +16,14 @@ import BookingsTab  from './components/BookingsTab';
 import RoomsTab     from './components/RoomsTab';
 import PaymentsTab  from './components/PaymentsTab';
 import CalendarTab  from './components/CalendarTab';
+import ReportsTab   from './components/ReportsTab';
 import BookingPage  from './BookingPage';
 
 import { getDashboardSummary, getBookings } from './lib/api';
 import { supabase } from './lib/supabase';
 import type { Booking } from './lib/types';
 
-type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments';
+type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments' | 'reports';
 
 /** Request browser notification permission and show a notification */
 function fireNotification(title: string, body: string, tag?: string) {
@@ -44,7 +45,7 @@ function fireNotification(title: string, body: string, tag?: string) {
 /** Derive the initial tab from the URL path on first load */
 function getInitialTab(): Tab {
   const path = window.location.pathname.replace(/^\//, '').split('/')[0];
-  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments'];
+  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments', 'reports'];
   return valid.includes(path as Tab) ? (path as Tab) : 'dashboard';
 }
 
@@ -167,6 +168,7 @@ export default function App() {
             {activeTab === 'calendar'  && <CalendarTab />}
             {activeTab === 'rooms'     && <RoomsTab />}
             {activeTab === 'payments'  && <PaymentsTab />}
+            {activeTab === 'reports'   && <ReportsTab />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -189,7 +191,7 @@ export default function App() {
         <NavButton active={activeTab === 'dashboard'} onClick={() => switchTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />
         <NavButton active={activeTab === 'bookings'}  onClick={() => switchTab('bookings')}  icon={<BookText size={20} />}        label="Bookings"  />
         <NavButton active={activeTab === 'calendar'}  onClick={() => switchTab('calendar')}  icon={<CalendarDays size={20} />}    label="Calendar"  />
-        <NavButton active={activeTab === 'rooms'}     onClick={() => switchTab('rooms')}     icon={<Bed size={20} />}             label="Rooms"     />
+        <NavButton active={activeTab === 'reports'}   onClick={() => switchTab('reports')}   icon={<BarChart2 size={20} />}       label="Reports"   />
         <NavButton active={activeTab === 'payments'}  onClick={() => switchTab('payments')}  icon={<Banknote size={20} />}        label="Payments"  />
       </nav>
     </div>
@@ -325,7 +327,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
           {([
             { label: 'Manage Bookings', tab: 'bookings', icon: <BookText size={20} className="text-primary" /> },
             { label: 'Room Status',     tab: 'rooms',    icon: <Bed size={20} className="text-tertiary" /> },
-            { label: 'Calendar View',   tab: 'calendar', icon: <CalendarDays size={20} className="text-secondary" /> },
+            { label: 'Reports',         tab: 'reports',  icon: <BarChart2 size={20} className="text-secondary" /> },
             { label: 'Payment History', tab: 'payments', icon: <Banknote size={20} className="text-emerald-600" /> },
           ] as { label: string; tab: Tab; icon: ReactNode }[]).map(item => (
             <button
