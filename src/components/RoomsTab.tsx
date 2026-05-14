@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Wrench, UserCheck, CalendarClock, Wind, AirVent, Users, RefreshCw, AlertCircle } from 'lucide-react';
+import { Wrench, UserCheck, CalendarClock, Wind, AirVent, Users, RefreshCw, AlertCircle, Lock } from 'lucide-react';
 import { getRoomsWithStatus } from '../lib/api';
 import type { RoomWithStatus, RoomOccupancyStatus } from '../lib/types';
 
@@ -8,6 +8,7 @@ const STATUS_CONFIG: Record<RoomOccupancyStatus, { label: string; color: string;
   available:   { label: 'Available',   color: 'text-emerald-700', bg: 'bg-emerald-100', dot: 'bg-emerald-500' },
   occupied:    { label: 'Occupied',    color: 'text-blue-700',    bg: 'bg-blue-100',    dot: 'bg-blue-500'    },
   reserved:    { label: 'Reserved',    color: 'text-amber-700',   bg: 'bg-amber-100',   dot: 'bg-amber-500'   },
+  long_term:   { label: 'Long-term',   color: 'text-purple-700',  bg: 'bg-purple-100',  dot: 'bg-purple-500'  },
   maintenance: { label: 'Maintenance', color: 'text-red-600',     bg: 'bg-red-100',     dot: 'bg-red-500'     },
 };
 
@@ -49,7 +50,7 @@ export default function RoomsTab() {
     available:   rooms.filter(r => r.occupancy_status === 'available').length,
     occupied:    rooms.filter(r => r.occupancy_status === 'occupied').length,
     reserved:    rooms.filter(r => r.occupancy_status === 'reserved').length,
-    maintenance: rooms.filter(r => r.occupancy_status === 'maintenance').length,
+    blocked:     rooms.filter(r => r.occupancy_status === 'maintenance' || r.occupancy_status === 'long_term').length,
   };
 
   return (
@@ -70,7 +71,7 @@ export default function RoomsTab() {
           <StatusStrip count={summary.available}   label="Free"     dotColor="bg-emerald-500" />
           <StatusStrip count={summary.occupied}    label="In Use"   dotColor="bg-blue-500"    />
           <StatusStrip count={summary.reserved}    label="Reserved" dotColor="bg-amber-500"   />
-          <StatusStrip count={summary.maintenance} label="Maint."   dotColor="bg-red-500"     />
+          <StatusStrip count={summary.blocked}     label="Blocked"  dotColor="bg-purple-500"  />
         </div>
       )}
 
@@ -118,7 +119,11 @@ export default function RoomsTab() {
                   Floor {floor}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {floorRooms.map(room => <RoomCard key={room.id} room={room} />)}
+                  {floorRooms.map(room => (
+                    <div key={room.id}>
+                      <RoomCard room={room} />
+                    </div>
+                  ))}
                 </div>
               </div>
             );
@@ -189,6 +194,13 @@ function RoomCard({ room }: { room: RoomWithStatus }) {
         <div className="bg-red-50 rounded-xl px-3 py-2 mt-2 flex items-center gap-2 text-xs text-red-600">
           <Wrench size={12} />
           <span>Under maintenance</span>
+        </div>
+      )}
+
+      {room.occupancy_status === 'long_term' && (
+        <div className="bg-purple-50 rounded-xl px-3 py-2 mt-2 flex items-center gap-2 text-xs text-purple-700">
+          <Lock size={12} />
+          <span>Long-term block on this room</span>
         </div>
       )}
     </motion.div>

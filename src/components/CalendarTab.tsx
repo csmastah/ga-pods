@@ -54,9 +54,19 @@ export default function CalendarTab() {
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
 
+  // Only track: confirmed (paid), checked_in (active), on_hold within 24 hrs
+  function isTrackable(b: { status: string; on_hold_at?: string | null }) {
+    if (b.status === 'confirmed' || b.status === 'checked_in') return true;
+    if (b.status === 'on_hold') {
+      if (!b.on_hold_at) return true; // no timestamp yet — show it
+      return Date.now() - new Date(b.on_hold_at).getTime() < 24 * 60 * 60 * 1000;
+    }
+    return false;
+  }
+
   function bookingsForDate(dateStr: string) {
     return bookings.filter(b =>
-      b.status !== 'cancelled' &&
+      isTrackable(b) &&
       b.check_in_date <= dateStr &&
       b.check_out_date > dateStr
     );
@@ -67,7 +77,7 @@ export default function CalendarTab() {
   // Unique room colors used this month for legend
   const activeRoomNumbers = [...new Set(
     bookings
-      .filter(b => b.status !== 'cancelled' && b.room?.room_number)
+      .filter(b => isTrackable(b) && b.room?.room_number)
       .map(b => b.room!.room_number)
   )];
 
@@ -184,7 +194,9 @@ export default function CalendarTab() {
                     <span className={`inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-full font-label uppercase tracking-tight ${
                       b.status === 'checked_in'      ? 'bg-emerald-100 text-emerald-700' :
                       b.status === 'confirmed'       ? 'bg-blue-100 text-blue-700' :
+                      b.status === 'on_hold'         ? 'bg-primary/10 text-primary' :
                       b.status === 'pending_payment' ? 'bg-amber-100 text-amber-700' :
+                      b.status === 'cancelled' || b.status === 'expired' ? 'bg-red-100 text-red-700' :
                       'bg-slate-100 text-slate-600'
                     }`}>
                       {b.status.replace('_', ' ')}
@@ -202,9 +214,9 @@ export default function CalendarTab() {
         <div className="mt-8">
           <p className="text-xs font-label uppercase tracking-[0.2em] text-outline mb-3">Room Legend</p>
           <div className="grid grid-cols-4 gap-2">
-            {activeRoomNumbers.map(rn => (
+            {activeRoomNumbers.map((rn) => (
               <div key={rn} className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${ROOM_COLORS[rn] ?? 'bg-primary'}`} />
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${ROOM_COLORS[String(rn)] ?? 'bg-primary'}`} />
                 <span className="text-xs text-outline font-label">{rn}</span>
               </div>
             ))}
