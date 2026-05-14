@@ -17,19 +17,17 @@ export interface RoomType {
 }
 
 /** Booking status flow:
- *  pending_payment → on_hold → confirmed → checked_in → checked_out
- *  Any active status → cancelled | rebooked | expired
- *  TODO: define the exact business rule/timer for expired.
+ *  pending_payment → payment_submitted → confirmed → checked_in → checked_out
+ *  Any status → cancelled | no_show
  */
 export type BookingStatus =
   | 'pending_payment'    // Submitted, waiting for GCash payment
-  | 'on_hold'            // Customer uploaded payment screenshot; staff is verifying
+  | 'payment_submitted'  // Customer uploaded payment screenshot
   | 'confirmed'          // Manager confirmed payment
   | 'checked_in'         // Guest has arrived
   | 'checked_out'        // Guest has departed
   | 'cancelled'          // Booking was cancelled
-  | 'rebooked'           // Old booking replaced by a new booking reference
-  | 'expired';           // Reference expired; definition pending
+  | 'no_show';           // Guest did not arrive
 
 /** Result returned by create_booking() Supabase RPC */
 export interface BookingResult {

@@ -158,11 +158,7 @@ export default function PaymentsTab() {
                   <span className="text-sm font-bold text-on-surface">{formatPeso(monthTotal)}</span>
                 </div>
                 <div className="space-y-2">
-                  {entries.map(p => (
-                    <div key={p.id}>
-                      <PaymentRow p={p} />
-                    </div>
-                  ))}
+                  {entries.map(p => <PaymentRow key={p.id} p={p} />)}
                 </div>
               </div>
             );

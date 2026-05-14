@@ -41,12 +41,26 @@ function fireNotification(title: string, body: string, tag?: string) {
   }
 }
 
+/** Derive the initial tab from the URL path on first load */
+function getInitialTab(): Tab {
+  const path = window.location.pathname.replace(/^\//, '').split('/')[0];
+  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments'];
+  return valid.includes(path as Tab) ? (path as Tab) : 'dashboard';
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab);
   const [notifCount, setNotifCount] = useState(0);
 
   // Show guest booking flow when ?mode=booking is in the URL
   const isBookingMode = new URLSearchParams(window.location.search).get('mode') === 'booking';
+
+  /** Switch tabs and keep the URL in sync */
+  function switchTab(tab: Tab) {
+    setActiveTab(tab);
+    const path = tab === 'dashboard' ? '/' : `/${tab}`;
+    history.pushState(null, '', path);
+  }
 
   // Request notification permission on load
   useEffect(() => {
@@ -125,7 +139,7 @@ export default function App() {
           </div>
         </div>
         <button
-          onClick={() => setActiveTab('bookings')}
+          onClick={() => switchTab('bookings')}
           className="relative p-2 text-outline hover:bg-surface-container-high transition-colors rounded-full active:scale-95 duration-150"
           aria-label="Open bookings"
         >
@@ -148,7 +162,7 @@ export default function App() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
           >
-            {activeTab === 'dashboard' && <DashboardView onTabChange={setActiveTab} />}
+            {activeTab === 'dashboard' && <DashboardView onTabChange={switchTab} />}
             {activeTab === 'bookings'  && <BookingsTab />}
             {activeTab === 'calendar'  && <CalendarTab />}
             {activeTab === 'rooms'     && <RoomsTab />}
@@ -172,11 +186,11 @@ export default function App() {
 
       {/* Bottom Nav */}
       <nav className="bg-surface/88 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-2 rounded-t-3xl shadow-[0_-10px_30px_rgba(34,31,27,0.08)] border-t border-outline-variant/45">
-        <NavButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />
-        <NavButton active={activeTab === 'bookings'}  onClick={() => setActiveTab('bookings')}  icon={<BookText size={20} />}        label="Bookings"  />
-        <NavButton active={activeTab === 'calendar'}  onClick={() => setActiveTab('calendar')}  icon={<CalendarDays size={20} />}    label="Calendar"  />
-        <NavButton active={activeTab === 'rooms'}     onClick={() => setActiveTab('rooms')}     icon={<Bed size={20} />}             label="Rooms"     />
-        <NavButton active={activeTab === 'payments'}  onClick={() => setActiveTab('payments')}  icon={<Banknote size={20} />}        label="Payments"  />
+        <NavButton active={activeTab === 'dashboard'} onClick={() => switchTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />
+        <NavButton active={activeTab === 'bookings'}  onClick={() => switchTab('bookings')}  icon={<BookText size={20} />}        label="Bookings"  />
+        <NavButton active={activeTab === 'calendar'}  onClick={() => switchTab('calendar')}  icon={<CalendarDays size={20} />}    label="Calendar"  />
+        <NavButton active={activeTab === 'rooms'}     onClick={() => switchTab('rooms')}     icon={<Bed size={20} />}             label="Rooms"     />
+        <NavButton active={activeTab === 'payments'}  onClick={() => switchTab('payments')}  icon={<Banknote size={20} />}        label="Payments"  />
       </nav>
     </div>
   );

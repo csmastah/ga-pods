@@ -1,33 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+/* Bricolage Grotesque (headline) + Nunito Sans (body) — distinctive, warm, not AI-default */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Nunito+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-headline: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  --font-label: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #D95D39;
-  --color-primary-container: #B83A1B;
-  --color-on-primary-fixed-variant: #6A2E1D;
-  --color-secondary: #8C7356;
-  --color-tertiary: #4A5D4E;
-  --color-tertiary-container: #344338;
-  --color-tertiary-fixed: #DCE8DD;
-  --color-on-tertiary-fixed-variant: #2F3C33;
-  --color-error: #B83A1B;
-  --color-error-container: #F7D6C9;
+  /* Brand palette — navy + forest green, not AI purple/cyan */
+  --color-primary: #00346f;
+  --color-primary-container: #004a99;
+  --color-on-primary-fixed-variant: #1a3a5c;
+  --color-secondary: #486176;
+  --color-tertiary: #003e2f;
+  --color-tertiary-container: #005744;
+  --color-tertiary-fixed: #9ef3d6;
+  --color-on-tertiary-fixed-variant: #1a3d30;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
 
-  --color-surface: #F9F7F2;
-  --color-on-surface: #221F1B;
-  --color-surface-container-high: #E8E1D8;
-  --color-surface-container-highest: #D8CEC0;
-  --color-surface-container-low: #F1EDE6;
-  --color-surface-container-lowest: #FFFFFF;
-  --color-outline: #756E64;
-  --color-outline-variant: #D6CCC0;
+  /* Surfaces — subtly tinted toward primary hue for cohesion */
+  --color-surface: #f8f9fc;
+  --color-on-surface: #18191e;
+  --color-surface-container-high: #e6e8ee;
+  --color-surface-container-highest: #dfe1e8;
+  --color-surface-container-low: #f2f3f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-outline: #6e7280;
+  --color-outline-variant: #bec3d1;
 
-  --shadow-fab: 0 14px 34px rgba(217, 93, 57, 0.2);
-  --shadow-card: 0 6px 20px rgba(34, 31, 27, 0.06);
+  /* Shadows — tinted toward brand hue */
+  --shadow-fab: 0 10px 32px rgba(0, 52, 111, 0.14);
+  --shadow-card: 0 2px 12px rgba(0, 52, 111, 0.06);
 
   /* Custom easing curves (Emil Kowalski) */
   --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
@@ -38,16 +42,9 @@
 @layer base {
   body {
     font-family: var(--font-body);
-    @apply bg-surface text-on-surface selection:bg-primary/25;
+    @apply bg-surface text-on-surface selection:bg-primary-container/30;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-
-  .rounded-3xl,
-  .rounded-2xl,
-  .rounded-xl,
-  .rounded-lg {
-    border-radius: 8px;
   }
 
   /* Reduced motion support */
