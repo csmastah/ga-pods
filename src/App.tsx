@@ -118,7 +118,7 @@ export default function App() {
     return () => { supabase.removeChannel(channel); };
   }, [isBookingMode]);
 
-  if (isBookingMode) return <BookingPage />;
+  if (isBookingMode) return <BookingPage isStaffMode={true} />;
 
   return (
     <div className="min-h-screen bg-surface flex flex-col font-body">

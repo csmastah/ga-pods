@@ -1,6 +1,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Phone, BedDouble, CalendarRange, ChevronRight, CircleDollarSign, UserCheck, UserX, Clock, RefreshCw, AlertCircle, Trash2, Eye, EyeOff, ShieldAlert, Image as ImageIcon, ExternalLink, X, Users } from 'lucide-react';
+import { Phone, BedDouble, CalendarRange, ChevronRight, CircleDollarSign, UserCheck, UserX, Clock, RefreshCw, AlertCircle, Trash2, Eye, EyeOff, ShieldAlert, Image as ImageIcon, ExternalLink, X, Users, PlusCircle } from 'lucide-react';
 import { getBookings, updateBookingStatus, createRebooking, extendStay, deleteBooking } from '../lib/api';
 import type { Booking, BookingStatus } from '../lib/types';
 
@@ -121,9 +121,18 @@ export default function BookingsTab() {
         <p className="text-sm font-label uppercase tracking-[0.2em] text-outline mb-1">Manage</p>
         <div className="flex items-center justify-between">
           <h2 className="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Bookings</h2>
-          <button onClick={load} disabled={loading} className="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors active:scale-95">
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.location.href = '?mode=booking'}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-full text-xs font-label font-semibold hover:bg-primary/90 active:scale-95 transition-all"
+              title="Add manual or OTA booking"
+            >
+              <PlusCircle size={14} /> Add Booking
+            </button>
+            <button onClick={load} disabled={loading} className="p-2 rounded-full hover:bg-surface-container-high text-outline transition-colors active:scale-95">
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
       </section>
 

@@ -95,13 +95,28 @@ function normalizeBrandText(value: string) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function BookingPage() {
+// ─── OTA source options (staff mode only) ────────────────────────────────────
+const OTA_SOURCES = [
+  { value: 'airbnb',      label: 'Airbnb' },
+  { value: 'booking_com', label: 'Booking.com' },
+  { value: 'agoda',       label: 'Agoda' },
+  { value: 'expedia',     label: 'Expedia' },
+  { value: 'klook',       label: 'Klook' },
+  { value: 'facebook',    label: 'Facebook / Messenger' },
+  { value: 'walkin',      label: 'Walk-in' },
+  { value: 'phone',       label: 'Phone call' },
+  { value: 'direct',      label: 'Direct / Website' },
+  { value: 'other',       label: 'Other' },
+];
+
+export default function BookingPage({ isStaffMode = false }: { isStaffMode?: boolean }) {
   const [step, setStep] = useState<Step>(1);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [search, setSearch] = useState<BookingSearchForm>({ checkIn: '', checkOut: '', adults: 2, children: 0 });
   const [rooms, setRooms] = useState<RoomType[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
   const [guest, setGuest] = useState<GuestForm>({ name: '', phone: '', email: '', notes: '' });
+  const [otaSource, setOtaSource] = useState('direct');
   const [result, setResult] = useState<BookingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -177,7 +192,9 @@ export default function BookingPage() {
     setLoading(true);
     setError(null);
     try {
-      const source = new URLSearchParams(window.location.search).get('source') ?? 'direct';
+      const source = isStaffMode
+        ? otaSource
+        : (new URLSearchParams(window.location.search).get('source') ?? 'direct');
       const { data, error: rpcErr } = await supabase.rpc('create_booking', {
         p_room_type_id: selectedRoom.id,
         p_guest_name:   guest.name.trim(),
@@ -276,6 +293,16 @@ export default function BookingPage() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             >
+              {isStaffMode && (
+                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center gap-3">
+                  <span className="text-amber-600 text-lg">🛎️</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-800 leading-tight">Staff / Manual Entry</p>
+                    <p className="text-[10px] text-amber-600 mt-0.5">You'll select the booking source (OTA or channel) in Step 3.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="mb-5 overflow-hidden rounded-2xl bg-primary text-white shadow-card">
                 <div className="min-h-48 bg-[linear-gradient(140deg,rgba(0,52,111,0.92),rgba(0,62,47,0.78)),url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center p-5 flex flex-col justify-end">
                   <p className="text-[11px] font-label uppercase tracking-[0.22em] text-white/75 mb-2">
@@ -544,6 +571,32 @@ export default function BookingPage() {
               </div>
 
               <div className="space-y-3">
+
+                {/* OTA Source — staff only */}
+                {isStaffMode && (
+                  <div className="bg-surface-container-lowest rounded-2xl p-5 border border-amber-200">
+                    <label className="text-[10px] font-label uppercase tracking-widest text-amber-600 block mb-3">
+                      🛎️ Booking Source <span className="text-error">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {OTA_SOURCES.map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setOtaSource(opt.value)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-label transition-colors ${
+                            otaSource === opt.value
+                              ? 'bg-primary text-white'
+                              : 'bg-surface-container-high text-outline hover:bg-surface-container-highest'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <InputField
                   icon={<User size={12} />}
                   label="Full Name"
