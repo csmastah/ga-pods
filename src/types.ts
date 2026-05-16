@@ -16,20 +16,24 @@ export interface RoomType {
   num_nights: number;
 }
 
-/** Booking status flow:
- *  pending_payment → on_hold → confirmed → checked_in → checked_out
- *  Any active status → cancelled | rebooked | expired
- *  TODO: define the exact business rule/timer for expired.
+/** Booking status flow (Phase 1 engine):
+ *  awaiting_payment → payment_submitted → under_review → confirmed → checked_in → checked_out
+ *  Any active status → cancelled | expired | no_show
+ *  Legacy: pending_payment (= awaiting_payment), on_hold (= payment_submitted / under_review)
  */
 export type BookingStatus =
-  | 'pending_payment'    // Submitted, waiting for GCash payment
-  | 'on_hold'            // Customer uploaded payment screenshot; staff is verifying
-  | 'confirmed'          // Manager confirmed payment
-  | 'checked_in'         // Guest has arrived
-  | 'checked_out'        // Guest has departed
-  | 'cancelled'          // Booking was cancelled
-  | 'rebooked'           // Old booking replaced by a new booking reference
-  | 'expired';           // Reference expired; definition pending
+  | 'pending_payment'    // legacy: unpaid hold (pre-rule-engine bookings)
+  | 'on_hold'            // legacy: screenshot uploaded, staff reviewing
+  | 'awaiting_payment'   // hold active, payment not yet submitted
+  | 'payment_submitted'  // guest uploaded payment screenshot
+  | 'under_review'       // operator reviewing screenshot
+  | 'confirmed'          // payment verified, booking confirmed
+  | 'checked_in'         // guest has arrived
+  | 'checked_out'        // guest has departed
+  | 'cancelled'          // booking cancelled
+  | 'rebooked'           // old booking superseded by a new ref
+  | 'expired'            // hold expired without payment
+  | 'no_show';           // guest did not arrive
 
 /** Result returned by create_booking() Supabase RPC */
 export interface BookingResult {

@@ -8,7 +8,7 @@ import {
   Bell, LogIn, LogOut, Moon, DoorOpen,
   Banknote, Plus, LayoutDashboard, BookText,
   CalendarDays, Bed, ChevronRight, RefreshCw,
-  MapPin, MessageCircle, ShieldCheck, CreditCard, BarChart2,
+  MapPin, MessageCircle, ShieldCheck, CreditCard, BarChart2, Settings2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -17,13 +17,14 @@ import RoomsTab     from './components/RoomsTab';
 import PaymentsTab  from './components/PaymentsTab';
 import CalendarTab  from './components/CalendarTab';
 import ReportsTab   from './components/ReportsTab';
+import SettingsTab  from './components/SettingsTab';
 import BookingPage  from './BookingPage';
 
 import { getDashboardSummary, getBookings } from './lib/api';
 import { supabase } from './lib/supabase';
 import type { Booking } from './lib/types';
 
-type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments' | 'reports';
+type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments' | 'reports' | 'settings';
 
 /** Request browser notification permission and show a notification */
 function fireNotification(title: string, body: string, tag?: string) {
@@ -45,7 +46,7 @@ function fireNotification(title: string, body: string, tag?: string) {
 /** Derive the initial tab from the URL path on first load */
 function getInitialTab(): Tab {
   const path = window.location.pathname.replace(/^\//, '').split('/')[0];
-  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments', 'reports'];
+  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments', 'reports', 'settings'];
   return valid.includes(path as Tab) ? (path as Tab) : 'dashboard';
 }
 
@@ -169,6 +170,7 @@ export default function App() {
             {activeTab === 'rooms'     && <RoomsTab />}
             {activeTab === 'payments'  && <PaymentsTab />}
             {activeTab === 'reports'   && <ReportsTab />}
+            {activeTab === 'settings'  && <SettingsTab />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -187,12 +189,13 @@ export default function App() {
       </button>
 
       {/* Bottom Nav */}
-      <nav className="bg-surface/88 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-2 rounded-t-3xl shadow-[0_-10px_30px_rgba(34,31,27,0.08)] border-t border-outline-variant/45">
-        <NavButton active={activeTab === 'dashboard'} onClick={() => switchTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Dashboard" />
-        <NavButton active={activeTab === 'bookings'}  onClick={() => switchTab('bookings')}  icon={<BookText size={20} />}        label="Bookings"  />
-        <NavButton active={activeTab === 'calendar'}  onClick={() => switchTab('calendar')}  icon={<CalendarDays size={20} />}    label="Calendar"  />
-        <NavButton active={activeTab === 'reports'}   onClick={() => switchTab('reports')}   icon={<BarChart2 size={20} />}       label="Reports"   />
-        <NavButton active={activeTab === 'payments'}  onClick={() => switchTab('payments')}  icon={<Banknote size={20} />}        label="Payments"  />
+      <nav className="bg-surface/88 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-8 pt-2 rounded-t-3xl shadow-[0_-10px_30px_rgba(34,31,27,0.08)] border-t border-outline-variant/45">
+        <NavButton active={activeTab === 'dashboard'} onClick={() => switchTab('dashboard')} icon={<LayoutDashboard size={18} />} label="Dashboard" />
+        <NavButton active={activeTab === 'bookings'}  onClick={() => switchTab('bookings')}  icon={<BookText size={18} />}        label="Bookings"  />
+        <NavButton active={activeTab === 'calendar'}  onClick={() => switchTab('calendar')}  icon={<CalendarDays size={18} />}    label="Calendar"  />
+        <NavButton active={activeTab === 'reports'}   onClick={() => switchTab('reports')}   icon={<BarChart2 size={18} />}       label="Reports"   />
+        <NavButton active={activeTab === 'payments'}  onClick={() => switchTab('payments')}  icon={<Banknote size={18} />}        label="Payments"  />
+        <NavButton active={activeTab === 'settings'}  onClick={() => switchTab('settings')}  icon={<Settings2 size={18} />}       label="Settings"  />
       </nav>
     </div>
   );
@@ -279,14 +282,18 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
           <div className="space-y-3">
             {recent.map((b, idx) => {
               const statusColors: Record<string, string> = {
-                pending_payment: 'bg-amber-500 text-white',
-                on_hold:         'bg-primary text-white',
-                confirmed:       'bg-blue-500 text-white',
-                checked_in:      'bg-primary text-white',
-                checked_out:     'bg-slate-500 text-white',
-                cancelled:       'bg-red-500 text-white',
-                rebooked:        'bg-violet-500 text-white',
-                expired:         'bg-red-500 text-white',
+                pending_payment:   'bg-amber-500 text-white',
+                on_hold:           'bg-primary text-white',
+                awaiting_payment:  'bg-amber-500 text-white',
+                payment_submitted: 'bg-blue-500 text-white',
+                under_review:      'bg-indigo-500 text-white',
+                confirmed:         'bg-emerald-500 text-white',
+                checked_in:        'bg-primary text-white',
+                checked_out:       'bg-slate-500 text-white',
+                cancelled:         'bg-red-500 text-white',
+                rebooked:          'bg-violet-500 text-white',
+                expired:           'bg-red-500 text-white',
+                no_show:           'bg-orange-500 text-white',
               };
               return (
                 <motion.div
@@ -329,6 +336,7 @@ function DashboardView({ onTabChange }: { onTabChange: (t: Tab) => void }) {
             { label: 'Room Status',     tab: 'rooms',    icon: <Bed size={20} className="text-tertiary" /> },
             { label: 'Reports',         tab: 'reports',  icon: <BarChart2 size={20} className="text-secondary" /> },
             { label: 'Payment History', tab: 'payments', icon: <Banknote size={20} className="text-emerald-600" /> },
+            { label: 'Settings',        tab: 'settings', icon: <Settings2 size={20} className="text-slate-500" /> },
           ] as { label: string; tab: Tab; icon: ReactNode }[]).map(item => (
             <button
               key={item.tab}

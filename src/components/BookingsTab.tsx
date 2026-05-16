@@ -1,41 +1,54 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Phone, BedDouble, CalendarRange, ChevronRight, CircleDollarSign, UserCheck, UserX, Clock, RefreshCw, AlertCircle, Trash2, Eye, EyeOff, ShieldAlert, Image as ImageIcon, ExternalLink, X, Users, PlusCircle } from 'lucide-react';
-import { getBookings, updateBookingStatus, createRebooking, extendStay, deleteBooking } from '../lib/api';
-import type { Booking, BookingStatus } from '../lib/types';
+import { getBookings, updateBookingStatus, createRebooking, extendStay, deleteBooking, confirmPayment } from '../lib/api';
+import type { Booking, BookingStatus, BookingSnapshot } from '../lib/types';
 
 const STATUS_FILTERS: { label: string; value: BookingStatus | 'All' }[] = [
-  { label: 'All',          value: 'All' },
-  { label: 'Pending',      value: 'pending_payment' },
-  { label: 'On Hold',      value: 'on_hold' },
-  { label: 'Confirmed',    value: 'confirmed' },
-  { label: 'Checked In',   value: 'checked_in' },
-  { label: 'Checked Out',  value: 'checked_out' },
-  { label: 'Cancelled',    value: 'cancelled' },
-  { label: 'Rebooked',     value: 'rebooked' },
-  { label: 'Expired',      value: 'expired' },
+  { label: 'All',             value: 'All' },
+  { label: 'Awaiting Pymnt',  value: 'awaiting_payment' },
+  { label: 'Screenshot Up',   value: 'payment_submitted' },
+  { label: 'Under Review',    value: 'under_review' },
+  { label: 'Confirmed',       value: 'confirmed' },
+  { label: 'Checked In',      value: 'checked_in' },
+  { label: 'Checked Out',     value: 'checked_out' },
+  { label: 'Cancelled',       value: 'cancelled' },
+  { label: 'Rebooked',        value: 'rebooked' },
+  { label: 'Expired',         value: 'expired' },
+  { label: 'No Show',         value: 'no_show' },
+  // Legacy filters (hidden from primary UI but kept for existing data)
+  { label: 'Pending (old)',   value: 'pending_payment' },
+  { label: 'On Hold (old)',   value: 'on_hold' },
 ];
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
-  pending_payment: 'Pending Payment',
-  on_hold:         'On Hold',
-  confirmed:       'Confirmed',
-  checked_in:      'Checked In',
-  checked_out:     'Checked Out',
-  cancelled:       'Cancelled',
-  rebooked:        'Rebooked',
-  expired:         'Expired',
+  pending_payment:   'Pending Payment',
+  on_hold:           'On Hold',
+  awaiting_payment:  'Awaiting Payment',
+  payment_submitted: 'Screenshot Uploaded',
+  under_review:      'Under Review',
+  confirmed:         'Confirmed',
+  checked_in:        'Checked In',
+  checked_out:       'Checked Out',
+  cancelled:         'Cancelled',
+  rebooked:          'Rebooked',
+  expired:           'Expired',
+  no_show:           'No Show',
 };
 
 const STATUS_CONFIG: Record<BookingStatus, { color: string; bg: string; icon: ReactNode }> = {
-  pending_payment: { color: 'text-amber-700',   bg: 'bg-amber-100',   icon: <Clock size={12} /> },
-  on_hold:         { color: 'text-primary',     bg: 'bg-primary/10',  icon: <CircleDollarSign size={12} /> },
-  confirmed:       { color: 'text-blue-700',    bg: 'bg-blue-100',    icon: <CircleDollarSign size={12} /> },
-  checked_in:      { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: <UserCheck size={12} /> },
-  checked_out:     { color: 'text-slate-600',   bg: 'bg-slate-100',   icon: <UserX size={12} /> },
-  cancelled:       { color: 'text-red-700',     bg: 'bg-red-100',     icon: <UserX size={12} /> },
-  rebooked:        { color: 'text-violet-700',  bg: 'bg-violet-100',  icon: <RefreshCw size={12} /> },
-  expired:         { color: 'text-red-700',     bg: 'bg-red-100',     icon: <AlertCircle size={12} /> },
+  pending_payment:   { color: 'text-amber-700',   bg: 'bg-amber-100',   icon: <Clock size={12} /> },
+  on_hold:           { color: 'text-primary',     bg: 'bg-primary/10',  icon: <CircleDollarSign size={12} /> },
+  awaiting_payment:  { color: 'text-amber-700',   bg: 'bg-amber-100',   icon: <Clock size={12} /> },
+  payment_submitted: { color: 'text-blue-700',    bg: 'bg-blue-100',    icon: <CircleDollarSign size={12} /> },
+  under_review:      { color: 'text-indigo-700',  bg: 'bg-indigo-100',  icon: <ShieldAlert size={12} /> },
+  confirmed:         { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: <CircleDollarSign size={12} /> },
+  checked_in:        { color: 'text-emerald-700', bg: 'bg-emerald-100', icon: <UserCheck size={12} /> },
+  checked_out:       { color: 'text-slate-600',   bg: 'bg-slate-100',   icon: <UserX size={12} /> },
+  cancelled:         { color: 'text-red-700',     bg: 'bg-red-100',     icon: <UserX size={12} /> },
+  rebooked:          { color: 'text-violet-700',  bg: 'bg-violet-100',  icon: <RefreshCw size={12} /> },
+  expired:           { color: 'text-red-700',     bg: 'bg-red-100',     icon: <AlertCircle size={12} /> },
+  no_show:           { color: 'text-orange-700',  bg: 'bg-orange-100',  icon: <AlertCircle size={12} /> },
 };
 
 function formatDate(iso: string) {
@@ -172,7 +185,7 @@ export default function BookingsTab() {
               </motion.div>
             ) : (
               filtered.map(booking => {
-                const cfg = STATUS_CONFIG[booking.status];
+                const cfg = STATUS_CONFIG[booking.status] ?? { color: 'text-slate-600', bg: 'bg-slate-100', icon: <Clock size={12} /> };
                 const isExpanded = expandedId === booking.id;
                 const isUpdating = updating === booking.id;
                 const roomNum = booking.room?.room_number ?? '—';
@@ -200,7 +213,7 @@ export default function BookingsTab() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="font-bold text-on-surface truncate">{booking.guest_name}</span>
                           <span className={`inline-flex items-center gap-1 ${cfg.bg} ${cfg.color} text-[10px] px-2 py-0.5 rounded-full font-label uppercase tracking-tight shrink-0`}>
-                            {cfg.icon}{STATUS_LABELS[booking.status]}
+                            {cfg.icon}{STATUS_LABELS[booking.status] ?? booking.status.replace(/_/g, ' ')}
                           </span>
                           {booking.payment_screenshot_url && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-label font-bold uppercase tracking-tight text-emerald-700">
@@ -496,6 +509,7 @@ function ActionButtons({ booking, onUpdate, onRefresh, isUpdating }: {
   isUpdating: boolean;
 }) {
   const [mode, setMode]               = useState<'default' | 'rebook' | 'extend'>('default');
+  const [showPayModal, setShowPayModal] = useState(false);
   const [rebookCheckIn, setRebookCI]  = useState('');
   const [rebookCheckOut, setRebookCO] = useState('');
   const [extendCheckOut, setExtendCO] = useState('');
@@ -587,22 +601,74 @@ function ActionButtons({ booking, onUpdate, onRefresh, isUpdating }: {
   );
 
   /* ── Default action buttons per status ── */
-  if (status === 'pending_payment') return (
-    <div className="flex flex-col gap-2">
-      <ActionBtn color="green" onClick={() => onUpdate(id, 'confirmed')}  label="✓ Payment Received" />
-      <ActionBtn color="primary"  onClick={() => onUpdate(id, 'on_hold')}    label="Mark On Hold (Verify First)" outline />
-      <div className="flex gap-2">
-        <ActionBtn color="red" onClick={() => onUpdate(id, 'expired')}    label="Expire (No Payment)" outline />
-        <ActionBtn color="red" onClick={() => onUpdate(id, 'cancelled')}  label="Cancel" outline />
+
+  // New: awaiting_payment — hold active, no screenshot yet
+  if (status === 'awaiting_payment') return (
+    <>
+      {showPayModal && <PaymentConfirmModal booking={booking} onClose={() => setShowPayModal(false)} onConfirmed={() => { setShowPayModal(false); onRefresh(); }} />}
+      <div className="flex flex-col gap-2">
+        <ActionBtn color="green" onClick={() => setShowPayModal(true)} label="✓ Payment Received" />
+        <ActionBtn color="primary" onClick={() => onUpdate(id, 'payment_submitted')} label="Screenshot Uploaded (Verify)" outline />
+        <div className="flex gap-2">
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'expired')}   label="Expire Hold" outline />
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'cancelled')} label="Cancel" outline />
+        </div>
       </div>
-    </div>
+    </>
   );
 
+  // New: payment_submitted — screenshot uploaded, needs review
+  if (status === 'payment_submitted') return (
+    <>
+      {showPayModal && <PaymentConfirmModal booking={booking} onClose={() => setShowPayModal(false)} onConfirmed={() => { setShowPayModal(false); onRefresh(); }} />}
+      <div className="flex flex-col gap-2">
+        <ActionBtn color="green"   onClick={() => setShowPayModal(true)}           label="✓ Verify & Confirm Payment" />
+        <ActionBtn color="primary" onClick={() => onUpdate(id, 'under_review')}    label="Mark Under Review" outline />
+        <div className="flex gap-2">
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'expired')}   label="Expire" outline />
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'cancelled')} label="Cancel" outline />
+        </div>
+      </div>
+    </>
+  );
+
+  // New: under_review — operator has flagged for review
+  if (status === 'under_review') return (
+    <>
+      {showPayModal && <PaymentConfirmModal booking={booking} onClose={() => setShowPayModal(false)} onConfirmed={() => { setShowPayModal(false); onRefresh(); }} />}
+      <div className="flex flex-col gap-2">
+        <ActionBtn color="green" onClick={() => setShowPayModal(true)}         label="✓ Confirm Payment" />
+        <div className="flex gap-2">
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'cancelled')} label="Cancel" outline />
+        </div>
+      </div>
+    </>
+  );
+
+  // Legacy: pending_payment
+  if (status === 'pending_payment') return (
+    <>
+      {showPayModal && <PaymentConfirmModal booking={booking} onClose={() => setShowPayModal(false)} onConfirmed={() => { setShowPayModal(false); onRefresh(); }} />}
+      <div className="flex flex-col gap-2">
+        <ActionBtn color="green"   onClick={() => setShowPayModal(true)}           label="✓ Payment Received" />
+        <ActionBtn color="primary" onClick={() => onUpdate(id, 'on_hold')}         label="Mark On Hold (Verify First)" outline />
+        <div className="flex gap-2">
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'expired')}   label="Expire (No Payment)" outline />
+          <ActionBtn color="red" onClick={() => onUpdate(id, 'cancelled')} label="Cancel" outline />
+        </div>
+      </div>
+    </>
+  );
+
+  // Legacy: on_hold
   if (status === 'on_hold') return (
-    <div className="flex gap-2">
-      <ActionBtn color="primary" onClick={() => onUpdate(id, 'confirmed')}   label="Acknowledge Payment" />
-      <ActionBtn color="red"  onClick={() => onUpdate(id, 'cancelled')}   label="Cancel" outline />
-    </div>
+    <>
+      {showPayModal && <PaymentConfirmModal booking={booking} onClose={() => setShowPayModal(false)} onConfirmed={() => { setShowPayModal(false); onRefresh(); }} />}
+      <div className="flex gap-2">
+        <ActionBtn color="primary" onClick={() => setShowPayModal(true)}         label="Acknowledge Payment" />
+        <ActionBtn color="red"     onClick={() => onUpdate(id, 'cancelled')}     label="Cancel" outline />
+      </div>
+    </>
   );
 
   if (status === 'confirmed') return (
@@ -635,6 +701,13 @@ function ActionButtons({ booking, onUpdate, onRefresh, isUpdating }: {
     </div>
   );
 
+  if (status === 'no_show') return (
+    <div className="flex gap-2">
+      <ActionBtn color="primary" onClick={() => onUpdate(id, 'confirmed')}  label="Guest Arrived (Undo No-Show)" outline />
+      <ActionBtn color="red"     onClick={() => onUpdate(id, 'cancelled')}  label="Cancel Booking" outline />
+    </div>
+  );
+
   return null;
 }
 
@@ -649,6 +722,178 @@ function ActionBtn({ label, color, onClick, outline = false }: {
     red:     outline ? 'border border-red-300 text-red-500 hover:bg-red-50'             : 'bg-red-600 text-white hover:bg-red-700',
   };
   return <button onClick={onClick} className={`${base} ${variants[color]}`}>{label}</button>;
+}
+
+// ─── Payment Confirmation Modal ────────────────────────────────────────────────
+function PaymentConfirmModal({
+  booking,
+  onClose,
+  onConfirmed,
+}: {
+  booking: Booking;
+  onClose: () => void;
+  onConfirmed: () => void;
+}) {
+  const snap = booking.booking_snapshot as BookingSnapshot | null;
+  const amountRequired = snap?.amount_required_now ?? booking.total_price;
+  const bookingTotal   = snap?.booking_total       ?? booking.total_price;
+  const balanceAmount  = snap?.balance_amount       ?? 0;
+  const balanceDue     = snap?.balance_due_date;
+  const screenshotUrl  = booking.payment_screenshot_url;
+
+  const [amountPaid, setAmountPaid] = useState<string>(String(amountRequired));
+  const [notes, setNotes]           = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]           = useState('');
+
+  const paid       = Number(amountPaid) || 0;
+  const isShortfall = paid < amountRequired;
+  const isFullPay  = paid >= bookingTotal;
+  const payType    = isFullPay ? 'full' : 'deposit';
+
+  async function handleConfirm() {
+    if (paid <= 0) { setError('Enter the amount paid.'); return; }
+    setSubmitting(true);
+    setError('');
+    try {
+      // Find the existing payment_proofs row for this booking, if any
+      const { data: proofs } = await (await import('../lib/supabase')).supabase
+        .from('payment_proofs')
+        .select('id')
+        .eq('booking_id', booking.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(1);
+
+      await confirmPayment({
+        bookingId:       booking.id,
+        paymentProofId:  proofs?.[0]?.id ?? null,
+        paymentType:     payType,
+        amountRequired,
+        amountPaid:      paid,
+        notes,
+      });
+      onConfirmed();
+    } catch (e: unknown) {
+      setError((e as Error).message ?? 'Failed to confirm payment.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <h2 className="font-semibold text-slate-800 text-base">Confirm Payment Received</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+        </div>
+
+        {/* Screenshot */}
+        {screenshotUrl && (
+          <div className="px-5 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Payment Screenshot</p>
+            <img
+              src={screenshotUrl}
+              alt="Payment screenshot"
+              className="w-full rounded-xl border border-slate-200 object-contain max-h-48"
+            />
+            <a href={screenshotUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs text-blue-600">
+              <ExternalLink size={11} /> Open full size
+            </a>
+          </div>
+        )}
+
+        {/* Amount summary */}
+        <div className="px-5 pt-4 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Booking Summary</p>
+          <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 text-sm">
+            <div className="flex justify-between px-4 py-2.5">
+              <span className="text-slate-500">Full booking total</span>
+              <span className="font-semibold">₱{bookingTotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between px-4 py-2.5">
+              <span className="text-slate-500">Required now ({snap?.stay_tier ?? '—'} stay)</span>
+              <span className="font-semibold text-amber-700">₱{amountRequired.toLocaleString()}</span>
+            </div>
+            {balanceAmount > 0 && (
+              <div className="flex justify-between px-4 py-2.5">
+                <span className="text-slate-500">
+                  Balance due{balanceDue ? ` by ${new Date(balanceDue + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}` : ''}
+                </span>
+                <span className="font-semibold text-slate-600">₱{balanceAmount.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Amount input */}
+        <div className="px-5 pt-4 space-y-3">
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1 block">
+              How much did the guest actually send?
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₱</span>
+              <input
+                type="number"
+                min="0"
+                value={amountPaid}
+                onChange={e => setAmountPaid(e.target.value)}
+                className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
+          {isShortfall && paid > 0 && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              ⚠ Amount is ₱{(amountRequired - paid).toLocaleString()} short of the required amount. Confirm only if you've agreed to a partial payment.
+            </div>
+          )}
+          {isFullPay && (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+              ✓ Full booking amount received — no balance due.
+            </div>
+          )}
+
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1 block">
+              Operator notes (optional)
+            </label>
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="e.g. GCash ref 1234, guest split payment…"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 px-5 py-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={submitting || paid <= 0}
+            className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {submitting ? 'Confirming…' : isShortfall ? 'Confirm Partial ⚠' : '✓ Confirm Payment'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function LoadingCards({ count }: { count: number }) {

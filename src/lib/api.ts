@@ -34,10 +34,11 @@ export async function updateBookingStatus(
 ): Promise<Booking> {
   const now = new Date().toISOString();
   const updates: Partial<Booking> & { updated_at: string } = { status, updated_at: now };
-  if (status === 'confirmed') { updates.confirmed_at = now; updates.payment_confirmed_at = now; }
-  if (status === 'on_hold')     updates.on_hold_at    = now;
-  if (status === 'cancelled')   updates.cancelled_at  = now;
-  if (status === 'expired')     updates.expired_at    = now;
+  if (status === 'confirmed')          { updates.confirmed_at = now; updates.payment_confirmed_at = now; }
+  if (status === 'on_hold')              updates.on_hold_at    = now;
+  if (status === 'cancelled')            updates.cancelled_at  = now;
+  if (status === 'expired')              updates.expired_at    = now;
+  // New statuses — no special timestamp columns yet; updated_at tracks the transition
 
   const { data, error } = await supabase
     .from('bookings')
@@ -201,6 +202,71 @@ export async function extendStay(
     .single();
   if (error) throw error;
   return data as Booking;
+}
+
+// ── Payment confirmation ──────────────────────────────────────────────────────
+
+export interface PaymentConfirmationInput {
+  bookingId: string;
+  paymentProofId: string | null;   // existing payment_proofs row to update, if any
+  paymentType: 'deposit' | 'balance' | 'full';
+  amountRequired: number;
+  amountPaid: number;
+  reviewedBy?: string;             // auth user id
+  notes?: string;
+}
+
+export async function confirmPayment(input: PaymentConfirmationInput): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Determine verification status based on amounts
+  let verificationStatus: 'verified' | 'insufficient';
+  let newBookingStatus: BookingStatus;
+
+  if (input.amountPaid >= input.amountRequired) {
+    verificationStatus = 'verified';
+    // Full payment = confirm; deposit only = confirm too (balance tracked separately)
+    newBookingStatus = 'confirmed';
+  } else {
+    verificationStatus = 'insufficient';
+    newBookingStatus = 'under_review'; // flag for operator attention
+  }
+
+  // Update the payment_proofs row if given, else insert a new record
+  if (input.paymentProofId) {
+    const { error: proofError } = await supabase
+      .from('payment_proofs')
+      .update({
+        payment_type:        input.paymentType,
+        amount_required:     input.amountRequired,
+        amount_paid:         input.amountPaid,
+        verification_status: verificationStatus,
+        reviewed_at:         now,
+        reviewed_by:         input.reviewedBy ?? null,
+        operator_notes:      input.notes ?? null,
+        status:              verificationStatus === 'verified' ? 'approved' : 'insufficient',
+      })
+      .eq('id', input.paymentProofId);
+
+    if (proofError) throw proofError;
+  }
+
+  // Update booking status + payment_confirmed_at if verified
+  const bookingUpdates: Record<string, unknown> = {
+    status:     newBookingStatus,
+    updated_at: now,
+  };
+  if (newBookingStatus === 'confirmed') {
+    bookingUpdates.confirmed_at       = now;
+    bookingUpdates.payment_confirmed_at = now;
+  }
+
+  const { error: bookingError } = await supabase
+    .from('bookings')
+    .update(bookingUpdates)
+    .eq('id', input.bookingId);
+
+  if (bookingError) throw bookingError;
 }
 
 // ── Dashboard summary ─────────────────────────────────────────────────────────
