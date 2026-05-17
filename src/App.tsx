@@ -9,6 +9,7 @@ import {
   Banknote, Plus, LayoutDashboard, BookText,
   CalendarDays, Bed, ChevronRight, RefreshCw,
   MapPin, MessageCircle, ShieldCheck, CreditCard, BarChart2, Settings2,
+  ClipboardList,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -18,13 +19,14 @@ import PaymentsTab  from './components/PaymentsTab';
 import CalendarTab  from './components/CalendarTab';
 import ReportsTab   from './components/ReportsTab';
 import SettingsTab  from './components/SettingsTab';
+import WaitlistTab  from './components/WaitlistTab';
 import BookingPage  from './BookingPage';
 
 import { getDashboardSummary, getBookings } from './lib/api';
 import { supabase } from './lib/supabase';
 import type { Booking } from './lib/types';
 
-type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments' | 'reports' | 'settings';
+type Tab = 'dashboard' | 'bookings' | 'calendar' | 'rooms' | 'payments' | 'reports' | 'settings' | 'waitlist';
 
 /** Request browser notification permission and show a notification */
 function fireNotification(title: string, body: string, tag?: string) {
@@ -46,7 +48,7 @@ function fireNotification(title: string, body: string, tag?: string) {
 /** Derive the initial tab from the URL path on first load */
 function getInitialTab(): Tab {
   const path = window.location.pathname.replace(/^\//, '').split('/')[0];
-  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments', 'reports', 'settings'];
+  const valid: Tab[] = ['dashboard', 'bookings', 'calendar', 'rooms', 'payments', 'reports', 'settings', 'waitlist'];
   return valid.includes(path as Tab) ? (path as Tab) : 'dashboard';
 }
 
@@ -171,6 +173,7 @@ export default function App() {
             {activeTab === 'payments'  && <PaymentsTab />}
             {activeTab === 'reports'   && <ReportsTab />}
             {activeTab === 'settings'  && <SettingsTab />}
+            {activeTab === 'waitlist'  && <WaitlistTab />}
           </motion.div>
         </AnimatePresence>
       </main>
@@ -192,8 +195,8 @@ export default function App() {
       <nav className="bg-surface/88 backdrop-blur-xl fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-8 pt-2 rounded-t-3xl shadow-[0_-10px_30px_rgba(34,31,27,0.08)] border-t border-outline-variant/45">
         <NavButton active={activeTab === 'dashboard'} onClick={() => switchTab('dashboard')} icon={<LayoutDashboard size={18} />} label="Dashboard" />
         <NavButton active={activeTab === 'bookings'}  onClick={() => switchTab('bookings')}  icon={<BookText size={18} />}        label="Bookings"  />
+        <NavButton active={activeTab === 'waitlist'}  onClick={() => switchTab('waitlist')}  icon={<ClipboardList size={18} />}   label="Waitlist"  />
         <NavButton active={activeTab === 'calendar'}  onClick={() => switchTab('calendar')}  icon={<CalendarDays size={18} />}    label="Calendar"  />
-        <NavButton active={activeTab === 'reports'}   onClick={() => switchTab('reports')}   icon={<BarChart2 size={18} />}       label="Reports"   />
         <NavButton active={activeTab === 'payments'}  onClick={() => switchTab('payments')}  icon={<Banknote size={18} />}        label="Payments"  />
         <NavButton active={activeTab === 'settings'}  onClick={() => switchTab('settings')}  icon={<Settings2 size={18} />}       label="Settings"  />
       </nav>
